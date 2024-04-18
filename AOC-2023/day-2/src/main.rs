@@ -16,7 +16,7 @@ fn read_file(file_name: &str) -> io::Result<Vec<String>> {
     reader.lines().collect()
 }
 
-fn solve_day1(parts: Vec<&str>) -> bool {
+fn solve_part1(parts: Vec<&str>) -> bool {
     let max_red = 12;
     let max_green = 13;
     let max_blue = 14;
@@ -45,41 +45,69 @@ fn solve_day1(parts: Vec<&str>) -> bool {
     game_possible
 }
 
-fn solve_day2(parts: Vec<&str>) -> {
-    
+fn solve_part2(parts: Vec<&str>) -> i32 {
+    let mut color_maxes: HashMap<&str, i32> = HashMap::new();
+    color_maxes.insert("red", 0);
+    color_maxes.insert("green", 0);
+    color_maxes.insert("blue", 0);
+    // Get the max of each color for this game
+    for part in parts {
+        let reveals: Vec<&str> = part.split(',').collect();
+        for reveal in reveals {
+            let values: Vec<&str> = reveal.split_whitespace().collect();
+            let num_i32: Result<i32, _> = values[0].parse();
+            let color = values[1];
+            match num_i32 {
+                Ok(n) => {
+                    if let Some(value) = color_maxes.get(color) {
+                        if n > *value {
+                            color_maxes.insert(color, n);
+                        }
+                    }                    
+                }
+                Err(_) => println!("couldn't parse number into i32")
+            }
+        }
+    }
+
+    let mut  game_score = 1;
+    if let Some(max_red) = color_maxes.get("red") {
+        game_score *= max_red;
+    }
+    if let Some(max_green) = color_maxes.get("green") {
+        game_score *= max_green;
+    }
+    if let Some(max_blue) = color_maxes.get("blue") {
+        game_score *= max_blue;
+    }
+
+    println!("{}", game_score);
+    game_score
+
 }
 
-fn process_input(file_name: &str) -> HashMap<i32, bool> {
+fn process_input_part2(file_name: &str) -> i32 {
     
-
     // Keep a map of the game number and whether or not it was possible
-    let mut game_map: HashMap<i32, bool> = HashMap::new();
-    let mut game_number = 1;
-    let lines = read_file("input.txt").expect("parse error");
+    let mut game_result = 0;
+
+    let lines = read_file(file_name).expect("parse error");
     for line in lines {
     
         // get rid of 'game #:'
         let stripped_line = match line.find(':') {
-            Some(index) => &line[index + 1..].trim(),
+            Some(index) => line[index + 1..].trim(),
             None => &line[..],
         };
 
         let parts: Vec<&str> = stripped_line.split(';').collect();
-        let game_possible = solve_day1(parts);
-        game_map.insert(game_number, game_possible);
-        game_number += 1;
+        let game_value = solve_part2(parts);
+        game_result += game_value;
     }
-    game_map
+    game_result
 }
 
 fn main() {
-    let game_map = process_input("test_input.txt");
-    let mut possible_counter = 0;
-    for (key, value) in &game_map {
-        if *value {
-            possible_counter += key;
-        }
-    }
-
-    println!("Sum of possible game #'s: {}", possible_counter);
+    let result = process_input_part2("input.txt");
+    println!("Sum of powers={}", result);
 }
